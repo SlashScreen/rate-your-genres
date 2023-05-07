@@ -1,9 +1,23 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.32126.317
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharpDll", "CSharpDll.csproj", "{F5D46BA1-6F21-40EF-9695-46105CCACD08}"
+EndProject
+Project("{911E67C6-3D85-4FCE-B560-20A9C3E3FF48}") = "MusicBee", "C:\Program Files (x86)\MusicBee\MusicBee.exe", "{E95652E8-59E6-4826-AD8F-ED307A217C52}"
+	ProjectSection(DebuggerProjectSystem) = preProject
+		PortSupplier = 00000000-0000-0000-0000-000000000000
+		Executable = C:\Program Files (x86)\MusicBee\MusicBee.exe
+		RemoteMachine = ADAM-SANDLER-JO
+		StartingDirectory = C:\Program Files (x86)\MusicBee
+		Environment = Default
+		LaunchingEngine = 00000000-0000-0000-0000-000000000000
+		UseLegacyDebugEngines = No
+		LaunchSQLEngine = No
+		AttachLaunchAction = No
+		IORedirection = Auto
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,8 +35,15 @@ Global
 		{F5D46BA1-6F21-40EF-9695-46105CCACD08}.Release|Any CPU.Build.0 = Release|Any CPU
 		{F5D46BA1-6F21-40EF-9695-46105CCACD08}.Release|x86.ActiveCfg = Release|x86
 		{F5D46BA1-6F21-40EF-9695-46105CCACD08}.Release|x86.Build.0 = Release|x86
+		{E95652E8-59E6-4826-AD8F-ED307A217C52}.Debug|Any CPU.ActiveCfg = Release|x86
+		{E95652E8-59E6-4826-AD8F-ED307A217C52}.Debug|x86.ActiveCfg = Release|x86
+		{E95652E8-59E6-4826-AD8F-ED307A217C52}.Release|Any CPU.ActiveCfg = Release|x86
+		{E95652E8-59E6-4826-AD8F-ED307A217C52}.Release|x86.ActiveCfg = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {CDF749F1-9C3A-4083-AB03-2205F6CBC812}
 	EndGlobalSection
 EndGlobal
