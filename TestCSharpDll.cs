@@ -35,6 +35,7 @@ namespace MusicBeePlugin
             about.MinApiRevision = MinApiRevision;
             about.ReceiveNotifications = (ReceiveNotificationFlags.PlayerEvents | ReceiveNotificationFlags.TagEvents);
             about.ConfigurationPanelHeight = 0;   // height in pixels that musicbee should reserve in a panel for config settings. When set, a handle to an empty panel will be passed to the Configure function
+            Console.WriteLine("Initializing");
             return about;
         }
 
@@ -99,6 +100,16 @@ namespace MusicBeePlugin
                     // ...
                     break;
             }
+        }
+
+        private void CreateMenuItem() 
+        {
+            mbApiInterface.MB_AddMenuItem("mnuTools/Start My Plugin", "Start it!", MenuClicked);
+            Console.WriteLine("Menu Item");
+        }
+
+        private void MenuClicked(object sender, EventArgs args) {
+            Console.WriteLine("Clicked menu");
         }
 
         public static List<string> ParseHTML(string html)
