@@ -24,7 +24,7 @@ namespace MusicBeePlugin
             mbApiInterface.Initialise(apiInterfacePtr);
             about.PluginInfoVersion = PluginInfoVersion;
             about.Name = "Rate Your Genres";
-            about.Description = "A plugin that syncs your album genres with the genres listed on Rate Your Music.";
+            about.Description = "A plugin that syncs your album genres with the genres listed on Rate Your Music. build check";
             about.Author = "Slashscreen";
             about.TargetApplication = "";   //  the name of a Plugin Storage device or panel header for a dockable panel
             about.Type = PluginType.General;
@@ -35,7 +35,7 @@ namespace MusicBeePlugin
             about.MinApiRevision = MinApiRevision;
             about.ReceiveNotifications = (ReceiveNotificationFlags.PlayerEvents | ReceiveNotificationFlags.TagEvents);
             about.ConfigurationPanelHeight = 0;   // height in pixels that musicbee should reserve in a panel for config settings. When set, a handle to an empty panel will be passed to the Configure function
-            Console.WriteLine("Initializing");
+            Console.WriteLine("Initializing!");
             return about;
         }
 
