@@ -36,6 +36,7 @@ namespace MusicBeePlugin
             about.ReceiveNotifications = (ReceiveNotificationFlags.PlayerEvents | ReceiveNotificationFlags.TagEvents);
             about.ConfigurationPanelHeight = 0;   // height in pixels that musicbee should reserve in a panel for config settings. When set, a handle to an empty panel will be passed to the Configure function
             Console.WriteLine("Initializing!");
+            CreateMenuItem();
             return about;
         }
 
@@ -108,32 +109,62 @@ namespace MusicBeePlugin
             Console.WriteLine("Menu Item");
         }
 
-        private void MenuClicked(object sender, EventArgs args) {
+        private void MenuClicked(object sender, EventArgs args) 
+        {
             Console.WriteLine("Clicked menu");
+            string[] allFiles = { };
+            mbApiInterface.Library_QueryFilesEx("", out allFiles);
+            MetaDataType[] fields = {
+                    MetaDataType.Album,
+                    MetaDataType.AlbumArtist,
+                    MetaDataType.Artist,
+                    MetaDataType.TrackNo,
+                    MetaDataType.Rating,
+                    MetaDataType.TrackTitle,
+                    MetaDataType.RatingLove,
+                };
+            foreach (string file in allFiles)
+            {
+                string[] fileTags = { };
+                mbApiInterface.Library_GetFileTags(file, fields, out fileTags);
+                string artist = fileTags[1];
+                string album = fileTags[0];
+                GetAlbumGenres(artist, album);
+            }
         }
 
-        public static List<string> ParseHTML(string html)
+        public static List<string> ParseHTMLDoc(HtmlAgilityPack.HtmlDocument htmlDoc)
         {
-            HtmlAgilityPack.HtmlDocument htmlDoc = new HtmlAgilityPack.HtmlDocument();
-            htmlDoc.LoadHtml(html);
-
             var programmerLinks = htmlDoc.DocumentNode.SelectNodes("//span[contains(@class, 'release_pri_genres')]");
-
+            Console.WriteLine(programmerLinks);
+            if (programmerLinks == null)
+                return new List<string>();
             return programmerLinks.Where(link => link.FirstChild.Attributes.Count > 0).Select(link => link.FirstChild.InnerHtml).ToList();
         }
 
-        private static string CallUrl(string fullUrl)
+        private static List<string> GetPossibleURLs(string artist, string album)
         {
-	        WebClient client = new WebClient();
-            Stream data = client.OpenRead(fullUrl);
-	        StreamReader reader = new StreamReader(data);
-	        return reader.ReadToEnd();
+            List<string> urls = new List<string>();
+            urls.Add($"https://rateyourmusic.com/release/album/{artist.ToLower().Replace(' ', '-').Replace('.', '_')}/{album.ToLower().Replace(' ', '-')}/");
+            urls.Add($"https://rateyourmusic.com/release/ep/{artist.ToLower().Replace(' ', '-').Replace('.', '_')}/{album.ToLower().Replace(' ', '-')}/");
+            return urls;
+        }
+
+        private static HtmlAgilityPack.HtmlDocument CallUrl(string fullUrl)
+        {
+	        HtmlWeb web = new HtmlWeb();
+            HtmlAgilityPack.HtmlDocument doc = web.Load(fullUrl);
+            return doc;
         }
 
         void GetAlbumGenres(string artist, string album) 
         {
+            Console.WriteLine("Getting genres");
             string url = $"https://rateyourmusic.com/release/album/{artist.Replace(' ', '-')}/{album.Replace(' ', '-')}";
-            List<string> genres = ParseHTML(CallUrl(url));
+            var pageData = CallUrl(url);
+            if (pageData == null)
+                return;
+            List<string> genres = ParseHTMLDoc(pageData);
             genres.ForEach(s => Console.WriteLine(s));
         }
 

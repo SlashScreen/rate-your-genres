@@ -1,7 +1,6 @@
 J:\Programs\dotnet\rateyourgenres\bin\Debug\HtmlAgilityPack.dll
 J:\Programs\dotnet\rateyourgenres\bin\Debug\HtmlAgilityPack.pdb
 J:\Programs\dotnet\rateyourgenres\bin\Debug\HtmlAgilityPack.xml
-J:\Programs\dotnet\rateyourgenres\obj\Debug\CSharpDll.csproj.AssemblyReference.cache
 J:\Programs\dotnet\rateyourgenres\obj\Debug\CSharpDll.csproj.CoreCompileInputs.cache
 J:\Programs\dotnet\rateyourgenres\obj\Debug\CSharpDll.csproj.CopyComplete
 J:\Programs\dotnet\rateyourgenres\bin\Debug\mb_RateYourGenres.dll.config
