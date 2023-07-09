@@ -8,3 +8,4 @@ J:\Programs\dotnet\rateyourgenres\bin\Debug\mb_RateYourGenres.dll
 J:\Programs\dotnet\rateyourgenres\bin\Debug\mb_RateYourGenres.pdb
 J:\Programs\dotnet\rateyourgenres\obj\Debug\mb_RateYourGenres.dll
 J:\Programs\dotnet\rateyourgenres\obj\Debug\mb_RateYourGenres.pdb
+J:\Programs\dotnet\rateyourgenres\obj\Debug\CSharpDll.csproj.AssemblyReference.cache

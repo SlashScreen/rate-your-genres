@@ -105,7 +105,7 @@ namespace MusicBeePlugin
 
         private void CreateMenuItem() 
         {
-            mbApiInterface.MB_AddMenuItem("mnuTools/Start My Plugin", "Start it!", MenuClicked);
+            mbApiInterface.MB_AddMenuItem("mnuTools/Fetch genres for selected songs", "Begin", MenuClicked);
             Console.WriteLine("Menu Item");
         }
 
@@ -113,7 +113,7 @@ namespace MusicBeePlugin
         {
             Console.WriteLine("Clicked menu");
             string[] allFiles = { };
-            mbApiInterface.Library_QueryFilesEx("", out allFiles);
+            mbApiInterface.Library_QueryFilesEx("domain=SelectedFiles", out allFiles);
             MetaDataType[] fields = {
                     MetaDataType.Album,
                     MetaDataType.AlbumArtist,
@@ -123,31 +123,35 @@ namespace MusicBeePlugin
                     MetaDataType.TrackTitle,
                     MetaDataType.RatingLove,
                 };
-            foreach (string file in allFiles)
+            
+            Console.WriteLine($"number of selected items: {allFiles.Length}");
+            var albumGroups = allFiles.GroupBy(file =>
             {
-                string[] fileTags = { };
-                mbApiInterface.Library_GetFileTags(file, fields, out fileTags);
+                mbApiInterface.Library_GetFileTags(file, fields, out var fileTags);
+                return fileTags[0];
+            });
+
+            foreach (var albumGroup in albumGroups)
+            {
+                mbApiInterface.Library_GetFileTags(albumGroup.ElementAt(0), fields, out var fileTags);
+
                 string artist = fileTags[1];
                 string album = fileTags[0];
-                GetAlbumGenres(artist, album);
+
+                string genres = GetAlbumGenres(artist, album);
             }
         }
 
         public static List<string> ParseHTMLDoc(HtmlAgilityPack.HtmlDocument htmlDoc)
         {
-            var programmerLinks = htmlDoc.DocumentNode.SelectNodes("//span[contains(@class, 'release_pri_genres')]");
-            Console.WriteLine(programmerLinks);
+            Console.WriteLine("Parsing document...");
+            var programmerLinks = htmlDoc.DocumentNode.SelectNodes("//a[contains(concat(' ', @class, ' '), ' genre ')]"); // Looking for a.genre
             if (programmerLinks == null)
+            {
                 return new List<string>();
-            return programmerLinks.Where(link => link.FirstChild.Attributes.Count > 0).Select(link => link.FirstChild.InnerHtml).ToList();
-        }
-
-        private static List<string> GetPossibleURLs(string artist, string album)
-        {
-            List<string> urls = new List<string>();
-            urls.Add($"https://rateyourmusic.com/release/album/{artist.ToLower().Replace(' ', '-').Replace('.', '_')}/{album.ToLower().Replace(' ', '-')}/");
-            urls.Add($"https://rateyourmusic.com/release/ep/{artist.ToLower().Replace(' ', '-').Replace('.', '_')}/{album.ToLower().Replace(' ', '-')}/");
-            return urls;
+            }
+            Console.WriteLine($"found {programmerLinks.Count} genres");
+            return programmerLinks.Select(link => link.InnerText).ToList();
         }
 
         private static HtmlAgilityPack.HtmlDocument CallUrl(string fullUrl)
@@ -157,15 +161,41 @@ namespace MusicBeePlugin
             return doc;
         }
 
-        void GetAlbumGenres(string artist, string album) 
+        string GetAlbumGenres(string artist, string album)
         {
-            Console.WriteLine("Getting genres");
-            string url = $"https://rateyourmusic.com/release/album/{artist.Replace(' ', '-')}/{album.Replace(' ', '-')}";
-            var pageData = CallUrl(url);
-            if (pageData == null)
-                return;
-            List<string> genres = ParseHTMLDoc(pageData);
-            genres.ForEach(s => Console.WriteLine(s));
+            Console.WriteLine($"Getting genres for {artist} - {album}");
+            string[] urls = { 
+                $"https://rateyourmusic.com/release/album/{Sanitize(artist)}/{Sanitize(album)}/",
+                $"https://rateyourmusic.com/release/album/{Sanitize(artist)}/{Sanitize(album)}-1/", // for multiple versions
+                $"https://rateyourmusic.com/release/ep/{Sanitize(artist)}/{Sanitize(album)}/",
+                $"https://rateyourmusic.com/release/ep/{Sanitize(artist)}/{Sanitize(album)}-1/" // for multiple versions
+            };
+
+            HtmlAgilityPack.HtmlDocument pageData;
+
+            // If we get data, act on it
+            foreach (string url in urls)
+            {
+                Console.WriteLine(url);
+                pageData = CallUrl(url);
+                if (pageData != null)
+                {
+                    List<string> genres = ParseHTMLDoc(pageData);
+                    if (genres.Count > 0)
+                    {
+                        genres.ForEach(s => Console.WriteLine(s));
+                        return genres.Aggregate((sum, next) => sum + ";" + next);
+                    }
+                }
+            }
+
+            Console.WriteLine("No page loaded.");
+            return "";
+        }
+
+        private static string Sanitize(string input)
+        {
+            return input.Replace(" ", "-").Replace(".", "_").ToLower(); // could use a regex but who cares. Maybe I do need a regex.
         }
 
         // return an array of lyric or artwork provider names this plugin supports
