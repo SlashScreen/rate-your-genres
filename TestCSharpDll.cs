@@ -139,6 +139,14 @@ namespace MusicBeePlugin
                 string album = fileTags[0];
 
                 string genres = GetAlbumGenres(artist, album);
+
+                // TODO: Failure
+
+                foreach(var file in albumGroup)
+                {
+                    mbApiInterface.Library_SetFileTag(file, MetaDataType.Genre, genres);
+                    mbApiInterface.Library_CommitTagsToFile(file);
+                }
             }
         }
 
@@ -184,7 +192,7 @@ namespace MusicBeePlugin
                     if (genres.Count > 0)
                     {
                         genres.ForEach(s => Console.WriteLine(s));
-                        return genres.Aggregate((sum, next) => sum + ";" + next);
+                        return genres.Aggregate((sum, next) => sum + ";" + next.Trim(' '));
                     }
                 }
             }
