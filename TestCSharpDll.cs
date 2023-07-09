@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Drawing;
 using System.Windows.Forms;
 using System.Collections.Generic;
@@ -69,38 +68,10 @@ namespace MusicBeePlugin
             string dataPath = mbApiInterface.Setting_GetPersistentStoragePath();
         }
 
-        // MusicBee is closing the plugin (plugin is being disabled by user or MusicBee is shutting down)
-        public void Close(PluginCloseReason reason)
-        {
-        }
-
         // uninstall this plugin - clean up any persisted files
         public void Uninstall()
         {
-        }
-
-        // receive event notifications from MusicBee
-        // you need to set about.ReceiveNotificationFlags = PlayerEvents to receive all notifications, and not just the startup event
-        public void ReceiveNotification(string sourceFileUrl, NotificationType type)
-        {
-            // perform some action depending on the notification type
-            switch (type)
-            {
-                case NotificationType.PluginStartup:
-                    // perform startup initialisation
-                    switch (mbApiInterface.Player_GetPlayState())
-                    {
-                        case PlayState.Playing:
-                        case PlayState.Paused:
-                            // ...
-                            break;
-                    }
-                    break;
-                case NotificationType.TrackChanged:
-                    string artist = mbApiInterface.NowPlaying_GetFileTag(MetaDataType.Artist);
-                    // ...
-                    break;
-            }
+            // TODO: get rid of log
         }
 
         private void CreateMenuItem() 
@@ -112,6 +83,7 @@ namespace MusicBeePlugin
         private void MenuClicked(object sender, EventArgs args) 
         {
             Console.WriteLine("Clicked menu");
+            ClearLog();
             string[] allFiles = { };
             mbApiInterface.Library_QueryFilesEx("domain=SelectedFiles", out allFiles);
             MetaDataType[] fields = {
@@ -123,7 +95,8 @@ namespace MusicBeePlugin
                     MetaDataType.TrackTitle,
                     MetaDataType.RatingLove,
                 };
-            
+
+            // Group all songs by albums because we only need to get genres per album, not songs. Lots of wasted requests.
             Console.WriteLine($"number of selected items: {allFiles.Length}");
             var albumGroups = allFiles.GroupBy(file =>
             {
@@ -140,7 +113,11 @@ namespace MusicBeePlugin
 
                 string genres = GetAlbumGenres(artist, album);
 
-                // TODO: Failure
+                if (genres == "")
+                {
+                    ReportLogError($"Could not find album {album} by {artist} - skipping.");
+                    continue;
+                }
 
                 foreach(var file in albumGroup)
                 {
@@ -172,11 +149,14 @@ namespace MusicBeePlugin
         string GetAlbumGenres(string artist, string album)
         {
             Console.WriteLine($"Getting genres for {artist} - {album}");
+            // All possible URLs for albums, singles, EPs
             string[] urls = { 
                 $"https://rateyourmusic.com/release/album/{Sanitize(artist)}/{Sanitize(album)}/",
                 $"https://rateyourmusic.com/release/album/{Sanitize(artist)}/{Sanitize(album)}-1/", // for multiple versions
+                $"https://rateyourmusic.com/release/single/{Sanitize(artist)}/{Sanitize(album)}/",
+                $"https://rateyourmusic.com/release/single/{Sanitize(artist)}/{Sanitize(album)}-1/",
                 $"https://rateyourmusic.com/release/ep/{Sanitize(artist)}/{Sanitize(album)}/",
-                $"https://rateyourmusic.com/release/ep/{Sanitize(artist)}/{Sanitize(album)}-1/" // for multiple versions
+                $"https://rateyourmusic.com/release/ep/{Sanitize(artist)}/{Sanitize(album)}-1/",
             };
 
             HtmlAgilityPack.HtmlDocument pageData;
@@ -201,69 +181,11 @@ namespace MusicBeePlugin
             return "";
         }
 
-        private static string Sanitize(string input)
-        {
-            return input.Replace(" ", "-").Replace(".", "_").ToLower(); // could use a regex but who cares. Maybe I do need a regex.
-        }
+        private static string Sanitize(string input) => input.Replace(" ", "-").Replace(".", "_").ToLower(); // could use a regex and may need to.
+        
 
-        // return an array of lyric or artwork provider names this plugin supports
-        // the providers will be iterated through one by one and passed to the RetrieveLyrics/ RetrieveArtwork function in order set by the user in the MusicBee Tags(2) preferences screen until a match is found
-        //public string[] GetProviders()
-        //{
-        //    return null;
-        //}
+        void ReportLogError(string text) { }
 
-        // return lyrics for the requested artist/title from the requested provider
-        // only required if PluginType = LyricsRetrieval
-        // return null if no lyrics are found
-        //public string RetrieveLyrics(string sourceFileUrl, string artist, string trackTitle, string album, bool synchronisedPreferred, string provider)
-        //{
-        //    return null;
-        //}
-
-        // return Base64 string representation of the artwork binary data from the requested provider
-        // only required if PluginType = ArtworkRetrieval
-        // return null if no artwork is found
-        //public string RetrieveArtwork(string sourceFileUrl, string albumArtist, string album, string provider)
-        //{
-        //    //Return Convert.ToBase64String(artworkBinaryData)
-        //    return null;
-        //}
-
-        //  presence of this function indicates to MusicBee that this plugin has a dockable panel. MusicBee will create the control and pass it as the panel parameter
-        //  you can add your own controls to the panel if needed
-        //  you can control the scrollable area of the panel using the mbApiInterface.MB_SetPanelScrollableArea function
-        //  to set a MusicBee header for the panel, set about.TargetApplication in the Initialise function above to the panel header text
-        //public int OnDockablePanelCreated(Control panel)
-        //{
-        //  //    return the height of the panel and perform any initialisation here
-        //  //    MusicBee will call panel.Dispose() when the user removes this panel from the layout configuration
-        //  //    < 0 indicates to MusicBee this control is resizable and should be sized to fill the panel it is docked to in MusicBee
-        //  //    = 0 indicates to MusicBee this control resizeable
-        //  //    > 0 indicates to MusicBee the fixed height for the control.Note it is recommended you scale the height for high DPI screens(create a graphics object and get the DpiY value)
-        //    float dpiScaling = 0;
-        //    using (Graphics g = panel.CreateGraphics())
-        //    {
-        //        dpiScaling = g.DpiY / 96f;
-        //    }
-        //    panel.Paint += panel_Paint;
-        //    return Convert.ToInt32(100 * dpiScaling);
-        //}
-
-        // presence of this function indicates to MusicBee that the dockable panel created above will show menu items when the panel header is clicked
-        // return the list of ToolStripMenuItems that will be displayed
-        //public List<ToolStripItem> GetHeaderMenuItems()
-        //{
-        //    List<ToolStripItem> list = new List<ToolStripItem>();
-        //    list.Add(new ToolStripMenuItem("A menu item"));
-        //    return list;
-        //}
-
-        //private void panel_Paint(object sender, PaintEventArgs e)
-        //{
-        //    e.Graphics.Clear(Color.Red);
-        //    TextRenderer.DrawText(e.Graphics, "hello", SystemFonts.CaptionFont, new Point(10, 10), Color.Blue);
-        //}
-
+        void ClearLog() { }
     }
 }
