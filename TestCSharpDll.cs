@@ -16,6 +16,7 @@ namespace MusicBeePlugin
     {
         private MusicBeeApiInterface mbApiInterface;
         private PluginInfo about = new PluginInfo();
+        private string dataPath => mbApiInterface.Setting_GetPersistentStoragePath();
 
         public PluginInfo Initialise(IntPtr apiInterfacePtr)
         {
@@ -59,20 +60,11 @@ namespace MusicBeePlugin
             }
             return false;
         }
-       
-        // called by MusicBee when the user clicks Apply or Save in the MusicBee Preferences screen.
-        // its up to you to figure out whether anything has changed and needs updating
-        public void SaveSettings()
-        {
-            // save any persistent settings in a sub-folder of this path
-            string dataPath = mbApiInterface.Setting_GetPersistentStoragePath();
-        }
+
+        public void ReceiveNotification(string sourceFileUrl, NotificationType type) { }
 
         // uninstall this plugin - clean up any persisted files
-        public void Uninstall()
-        {
-            // TODO: get rid of log
-        }
+        public void Uninstall() => Directory.Delete(Path.Combine(dataPath, "rateyourgenres"));
 
         private void CreateMenuItem() 
         {
@@ -112,6 +104,8 @@ namespace MusicBeePlugin
                 string album = fileTags[0];
 
                 string genres = GetAlbumGenres(artist, album);
+
+                ReportLogError($"Test test {album} by {artist}");
 
                 if (genres == "")
                 {
@@ -184,8 +178,17 @@ namespace MusicBeePlugin
         private static string Sanitize(string input) => input.Replace(" ", "-").Replace(".", "_").ToLower(); // could use a regex and may need to.
         
 
-        void ReportLogError(string text) { }
+        void ReportLogError(string text) 
+        {
+            
+            File.AppendAllText(Path.Combine(Path.Combine(dataPath, "rateyourgenres"), "log.txt"), text);
+        }
 
-        void ClearLog() { }
+        void ClearLog()
+        {
+            Console.WriteLine(Path.Combine(dataPath, "rateyourgenres"));
+            Directory.CreateDirectory(Path.Combine(dataPath, "rateyourgenres"));
+            File.WriteAllText(Path.Combine(Path.Combine(dataPath, "rateyourgenres"), "log.txt"), "");
+        }
     }
 }
