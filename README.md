@@ -1,6 +1,8 @@
 # rate-your-genres
 A musicbee plugin for automatically pulling album genres from rateyourmusic.com. I made this for a friend, but I figured I may as well open source it.
 
+## WARNING: This plugin does not work at the moment due to some changes to RYM's website (primarily, captchas). They are considering making an API, and if they do, I will update it to use that. Until then, consider it broken. Sorry!
+
 Place the centents of the release in your plugins folder, and enable. Select any music you want to search for genres, then go under Tools>Find genres for selected tracks.
 A log of any albums it did not find is placed under %APPDATA%/Roaming/MusicBee/rateyourgenres. Please, report any music it should have found but did not to me. It may have trouble with unconventional symbols.
 
